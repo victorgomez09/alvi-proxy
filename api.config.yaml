@@ -1,0 +1,14 @@
+api:
+  enabled: true
+  host: admin.domain.com
+  port: 8085
+  insecure: true # this have to be enabled if you want to run api on HTTP (NOT RECOMMENDED)
+
+database:
+  path: "./auth.db"
+
+auth:
+  jwt_secret: "HelloFormTheOtherSide"
+  token_cleanup_interval: "7h"
+  password_expiry_days: 3
+

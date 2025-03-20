@@ -1,0 +1,76 @@
+{
+  "loggers": {
+    "viprox": {
+      "level": "debug",
+      "outputPaths": [
+        "viprox.log"
+      ],
+      "errorOutputPaths": [
+        "stderr"
+      ],
+      "development": false,
+      "logToConsole": true,
+      "sampling": {
+        "initial": 100,
+        "thereafter": 100
+      },
+      "encodingConfig": {
+        "timeKey": "time",
+        "levelKey": "level",
+        "nameKey": "logger",
+        "callerKey": "caller",
+        "messageKey": "msg",
+        "stacktraceKey": "stacktrace",
+        "lineEnding": "\n",
+        "levelEncoder": "lowercase",
+        "timeEncoder": "iso8601",
+        "durationEncoder": "string",
+        "callerEncoder": "short"
+      }
+    },
+    "service_default": {
+      "level": "info",
+      "outputPaths": [
+        "service_default.log"
+      ],
+      "errorOutputPaths": [
+        "service_default_error.log"
+      ],
+      "development": false,
+      "logToConsole": false,
+      "sampling": {
+        "initial": 100,
+        "thereafter": 100
+      },
+      "encodingConfig": {
+        "timeKey": "time",
+        "levelKey": "level",
+        "nameKey": "logger",
+        "callerKey": "caller",
+        "messageKey": "msg",
+        "stacktraceKey": "stacktrace",
+        "lineEnding": "\n",
+        "levelEncoder": "lowercase",
+        "timeEncoder": "iso8601",
+        "durationEncoder": "string",
+        "callerEncoder": "short"
+      },
+      "logRotation": {
+        "enabled": true,
+        "maxSizeMB": 200,
+        "maxBackups": 5,
+        "maxAgeDays": 15,
+        "compress": true
+      },
+      "sanitization": {
+        "sensitiveFields": [
+          "password",
+          "token",
+          "access_token",
+          "refresh_token"
+        ],
+        "mask": "****"
+      }
+    }
+  }
+}
