@@ -14,19 +14,19 @@ import (
 	"time"
 
 	"github.com/victorgomez09/viprox/internal/admin"
+	"github.com/victorgomez09/viprox/internal/algorithm"
 	auth_service "github.com/victorgomez09/viprox/internal/auth/service"
 	"github.com/victorgomez09/viprox/internal/config"
 	certmanager "github.com/victorgomez09/viprox/internal/crypto"
 	"github.com/victorgomez09/viprox/internal/health"
+	"github.com/victorgomez09/viprox/internal/logger"
 	"github.com/victorgomez09/viprox/internal/middleware"
+	"github.com/victorgomez09/viprox/internal/plugin"
 	"github.com/victorgomez09/viprox/internal/pool"
 	"github.com/victorgomez09/viprox/internal/service"
+	"github.com/victorgomez09/viprox/internal/shutdown"
 	"github.com/victorgomez09/viprox/internal/stls"
 	"github.com/victorgomez09/viprox/internal/svcache"
-	"github.com/victorgomez09/viprox/pkg/algorithm"
-	"github.com/victorgomez09/viprox/pkg/logger"
-	"github.com/victorgomez09/viprox/pkg/plugin"
-	"github.com/victorgomez09/viprox/pkg/shutdown"
 	"go.uber.org/zap"
 )
 
@@ -50,20 +50,16 @@ const (
 type Server struct {
 	config          *config.Viprox                 // Configuration settings for the server
 	apiConfig       *config.APIConfig              // API configuration settings
-	healthChecker   *health.Checker                // Global health checker (if any)
 	adminAPI        *admin.AdminAPI                // Admin API handler
 	adminServer     *http.Server                   // HTTP server for admin API
 	healthCheckers  map[string]*health.Checker     // Individual health checkers per service
 	serviceManager  *service.Manager               // Manages the lifecycle and configuration of services
-	tlsConfigs      map[string]*tls.Certificate    // Loaded TLS certificates
 	certManager     *certmanager.CertManager       // Manages TLS certificates
-	serverPool      *pool.ServerPool               // Pool of server instances
 	servers         []*http.Server                 // Slice of all HTTP/HTTPS servers
 	serviceCache    *sync.Map                      // Concurrent map for caching service lookups
 	portServers     map[int]*http.Server           // Mapping of ports to their corresponding servers
 	logger          *zap.Logger                    // Logger instance for logging server activities
 	logManager      *logger.LoggerManager          // Manages different loggers
-	mu              sync.RWMutex                   // Mutex for synchronizing access to shared resources
 	ctx             context.Context                // Context for managing server lifecycle
 	cancel          context.CancelFunc             // Function to cancel the server context
 	wg              sync.WaitGroup                 // WaitGroup to wait for goroutines to finish
@@ -90,7 +86,7 @@ func NewServer(
 	// creates default (max timeout) context for plugin plugin manager
 	// we need to set max value for proccessing timeout but still give
 	// users ability do define their own context timeout
-	// @ToDo: Shoud get from config or be more dynamic in the future
+	// TODO: Shoud get from config or be more dynamic in the future
 	ctxPlugin, cancelPlugin := context.WithTimeout(srvCtx, PluginLoadTime)
 	defer cancelPlugin()
 
@@ -105,13 +101,13 @@ func NewServer(
 	// Return error and halt init if something goes wrong
 	pluginManager := plugin.NewManager(zLog)
 	if err := pluginManager.Initialize(ctxPlugin, pluginDir); err != nil {
-		return nil, fmt.Errorf("Failed to initialize plugin manager %w", err)
+		return nil, fmt.Errorf("failed to initialize plugin manager %w", err)
 	}
 
 	// Initialize service manager which handles all backends and locations
 	serviceManager, err := service.NewManager(cfg, zLog, pluginManager)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to initialize service manager %w", err)
+		return nil, fmt.Errorf("failed to initialize service manager %w", err)
 	}
 
 	var adminAPI *admin.AdminAPI
@@ -234,6 +230,7 @@ func (s *Server) Start() error {
 	}
 
 	for _, svc := range s.serviceManager.GetServices() {
+		s.logger.Debug("starting service", zap.String("name", svc.Name))
 		if err := s.startServiceServer(svc); err != nil {
 			s.cancel()
 			return err
@@ -264,6 +261,7 @@ func (s *Server) startServiceServer(svc *service.ServiceInfo) error {
 
 	// Initialize multi-handler for this port if it doesn't exist
 	if s.virtualHandlers[port] == nil {
+		s.logger.Debug("Initializing virtual service for", zap.String("name", svc.Name))
 		s.virtualHandlers[port] = NewVirtualServiceHandler()
 	}
 
@@ -546,12 +544,12 @@ func (s *Server) getBackend(
 ) (*pool.Backend, error) {
 	backendAlgo := srvc.Algorithm.NextServer(srvc.ServerPool, r, &w)
 	if backendAlgo == nil {
-		return nil, errors.New("No Service Available")
+		return nil, errors.New("no Service Available")
 	}
 
 	backend := srvc.ServerPool.GetBackendByURL(backendAlgo.URL)
 	if backend == nil {
-		return nil, errors.New("No Peers are currently active")
+		return nil, errors.New("no Peers are currently active")
 	}
 	return backend, nil
 }

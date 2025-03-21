@@ -6,10 +6,10 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/victorgomez09/viprox/internal/algorithm"
 	"github.com/victorgomez09/viprox/internal/config"
+	"github.com/victorgomez09/viprox/internal/plugin"
 	"github.com/victorgomez09/viprox/internal/pool"
-	"github.com/victorgomez09/viprox/pkg/algorithm"
-	"github.com/victorgomez09/viprox/pkg/plugin"
 	"go.uber.org/zap"
 )
 
@@ -80,6 +80,7 @@ func NewManager(cfg *config.Viprox, logger *zap.Logger, pm *plugin.Manager) (*Ma
 		logger:        logger,
 	}
 
+	// TODO: create default service for load default HTML?
 	// If no services are defined in the config but backends are provided, create a default service.
 	if len(cfg.Services) == 0 && len(cfg.Backends) > 0 {
 		host := cfg.Host
@@ -90,7 +91,7 @@ func NewManager(cfg *config.Viprox, logger *zap.Logger, pm *plugin.Manager) (*Ma
 		defaultService := config.Service{
 			Name: "default",
 			Host: host,
-			Port: 8080,
+			Port: cfg.Port,
 			TLS:  &cfg.TLS,
 			Locations: []config.Location{
 				{

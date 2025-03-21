@@ -7,9 +7,9 @@ import (
 	"net/url"
 	"sync/atomic"
 
+	"github.com/victorgomez09/viprox/internal/algorithm"
 	"github.com/victorgomez09/viprox/internal/config"
-	"github.com/victorgomez09/viprox/pkg/algorithm"
-	"github.com/victorgomez09/viprox/pkg/plugin"
+	"github.com/victorgomez09/viprox/internal/plugin"
 	"go.uber.org/zap"
 )
 

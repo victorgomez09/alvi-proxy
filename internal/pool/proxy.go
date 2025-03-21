@@ -8,7 +8,7 @@ import (
 	"net/url"
 
 	pxErr "github.com/victorgomez09/viprox/internal/cerr"
-	"github.com/victorgomez09/viprox/pkg/plugin"
+	"github.com/victorgomez09/viprox/internal/plugin"
 	"go.uber.org/zap"
 )
 

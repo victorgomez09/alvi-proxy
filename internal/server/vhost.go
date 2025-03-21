@@ -22,9 +22,8 @@ type HostHandler struct {
 // This is the core component that enables efficient handling of multiple
 // services sharing the same port while maintaining separate configurations.
 type VirtualServiceHandler struct {
-	handlers       map[string]*HostHandler
-	mu             sync.RWMutex
-	defaultHandler http.Handler
+	handlers map[string]*HostHandler
+	mu       sync.RWMutex
 }
 
 // NewVirtualServiceHandler creates a new handler manager.
@@ -54,6 +53,7 @@ func (mh *VirtualServiceHandler) AddService(s *Server, svc *service.ServiceInfo)
 	}
 
 	baseHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		s.logger.Debug("handling request", zap.String("name", svc.Name))
 		s.handleRequest(w, r)
 	})
 

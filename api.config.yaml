@@ -1,7 +1,7 @@
 api:
   enabled: true
-  host: admin.domain.com
-  port: 8085
+  host: admin.localhost
+  port: 1209
   insecure: true # this have to be enabled if you want to run api on HTTP (NOT RECOMMENDED)
 
 database:

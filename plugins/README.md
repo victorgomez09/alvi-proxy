@@ -54,7 +54,7 @@ package myplugin
 import (
     "context"
     "net/http"
-    "github.com/victorgomez09/viprox/pkg/plugin"
+    "github.com/victorgomez09/viprox/internal/plugin"
 )
 
 type MyPlugin struct {
